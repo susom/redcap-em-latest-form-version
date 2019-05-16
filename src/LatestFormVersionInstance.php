@@ -1,20 +1,20 @@
 <?php
-namespace Stanford\SurveyUpdates;
+namespace Stanford\LatestFormVersion;
 
 use \REDCap;
 
 /**
- * Class SurveyUpdatesInstance
- * @package Stanford\SurveyUpdates
+ * Class LatestFormVersionInstance
+ * @package Stanford\LatestFormVersion
  *
  * This class validates each Survey Update configuration entered by users for their project.
  * Once the entered form/field lists are validated, it will save the specified field values
  * in the repeating form to the fields in the non-repeating form on save.
  *
  */
-class SurveyUpdatesInstance
+class LatestFormVersionInstance
 {
-    /** @var \Stanford\SurveyUpdates\SurveyUpdates $module */
+    /** @var \Stanford\LatestFormVersion\LatestFormVersion $module */
     private $module;
 
     // Determines which fields should be included in the summarize block
@@ -181,7 +181,7 @@ class SurveyUpdatesInstance
      */
     public function transferData($record, $instrument, $repeat_instance)
     {
-        $this->module->emLog("In transferData: record $record, instrument $instrument," .
+        $this->module->emDebug("In transferData: record $record, instrument $instrument," .
             "repeat instance $repeat_instance event_id " . $this->repeat_eventid .
             " repeating event " . $this->Proj->isRepeatingEvent($this->repeat_eventid) .
             " repeating form " . $this->Proj->isRepeatingForm($this->repeat_eventid, $this->repeat_form));

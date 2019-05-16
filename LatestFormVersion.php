@@ -1,13 +1,13 @@
 <?php
-namespace Stanford\SurveyUpdates;
-/** @var \Stanford\SurveyUpdates\SurveyUpdates $module */
+namespace Stanford\LatestFormVersion;
+/** @var \Stanford\LatestFormVersion\LatestFormVersion $module */
 
 require_once("emLoggerTrait.php");
-require_once("src/SurveyUpdatesInstance.php");
+require_once("src/LatestFormVersionInstance.php");
 
 use \REDCap;
 
-class SurveyUpdates extends \ExternalModules\AbstractExternalModule
+class LatestFormVersion extends \ExternalModules\AbstractExternalModule
 {
     use emLoggerTrait;
 
@@ -80,7 +80,7 @@ class SurveyUpdates extends \ExternalModules\AbstractExternalModule
         $messages = [];
 
         foreach ($instances as $i => $instance) {
-            $su = new SurveyUpdatesInstance($this, $instance);
+            $su = new LatestFormVersionInstance($this, $instance);
 
             // Get result
             list($valid, $message) = $su->validateConfig();
@@ -135,7 +135,7 @@ class SurveyUpdates extends \ExternalModules\AbstractExternalModule
                 ($this->deleteAction !== 'deleteForm')) {
 
                 // See if this config is valid
-                $su = new SurveyUpdatesInstance($this, $instance);
+                $su = new LatestFormVersionInstance($this, $instance);
                 list($valid, $messages) = $su->validateConfig();
 
                 // If valid put together the summarize block and save it for this record

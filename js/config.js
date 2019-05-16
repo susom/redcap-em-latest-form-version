@@ -1,5 +1,5 @@
 // Create a javascript object to hold all of our config features
-SurveyUpdateConfig = {
+LatestFormVersionConfig = {
 
     init: function(params) {
         // Make true
@@ -7,7 +7,7 @@ SurveyUpdateConfig = {
 
         // We need to delay a little bit for the rest of the config to finish loading
         setTimeout(function() {
-            SurveyUpdateConfig.configAjax.call(SurveyUpdateConfig,'pages/ConfigAjax')
+            LatestFormVersionConfig.configAjax.call(LatestFormVersionConfig,'pages/ConfigAjax')
         }, 200);
     },
 
@@ -19,10 +19,10 @@ SurveyUpdateConfig = {
         this.createStatusDiv('config_status');
 
         // Add an event handler so on any change to the form, we update the status
-        this.configureModal.on('change', 'input, select, textarea, checkbox', SurveyUpdateConfig.getStatus.bind(this));
+        this.configureModal.on('change', 'input, select, textarea, checkbox', LatestFormVersionConfig.getStatus.bind(this));
 
         // Add event handler in case we return buttons after a status update
-        this.statusDiv.on('click', '.btn', SurveyUpdateConfig.doAction.bind(this));
+        this.statusDiv.on('click', '.btn', LatestFormVersionConfig.doAction.bind(this));
 
         // Let's call getStatus once to start us off:
         this.getStatus();

@@ -1,6 +1,6 @@
 <?php
-namespace Stanford\SurveyUpdates;
-/** @var \Stanford\SurveyUpdates\SurveyUpdates $module */
+namespace Stanford\LatestFormVersion;
+/** @var \Stanford\LatestFormVersion\LatestFormVersion $module */
 
 
 // HANDLE BUTTON ACTION

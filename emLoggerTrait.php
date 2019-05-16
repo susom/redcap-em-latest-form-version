@@ -1,6 +1,6 @@
 <?php
-namespace Stanford\SurveyUpdates;
-/** @var \Stanford\SurveyUpdates\SurveyUpdates $this */
+namespace Stanford\LatestFormVersion;
+/** @var \Stanford\LatestFormVersion\LatestFormVersion $this */
 
 
 

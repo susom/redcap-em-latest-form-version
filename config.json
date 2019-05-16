@@ -1,7 +1,7 @@
 {
-  "name": "Survey Updates",
-  "namespace": "Stanford\\SurveyUpdates",
-  "description": "This is a utility EM which takes a repeating form and updates a non-repeating form. The most common use for this EM will be for participants to update their contact info in surveys and have that new info populate a Demographics instrument so the Demographics instrument is always up-to-date.",
+  "name": "Latest Form Version",
+  "namespace": "Stanford\\LatestFormVersion",
+  "description": "This is a utility EM which takes a repeating form or a form in a repeating event and updates a non-repeating form. The most common use for this EM will be for participants to update their contact info in surveys and have that new info populate a Demographics instrument so the Demographics instrument is always up-to-date.",
   "authors": [
     {
       "name": "Andy Martin",
@@ -51,55 +51,55 @@
   "project-settings": [
     {
       "key": "description",
-      "name": "<h6 style='text-align:center;color:red'><b>Update a non-repeating form with data from a repeating form</b></h6>The most common use case for this EM is when projects send out surveys to particpants where they would like the participant's contact information updated. Instead of searching through repeating forms for the last time participants updated their contact info, this utility will update fields on a non-repeating form (such as a demographics form) so the non-repeating form always has current information. Fields that are left blank on the repeating form will not overwrite fields in the non-repeating form unless the 'overwrite' checkbox is checked.",
+      "name": "<h6 style='text-align:center;color:red'><b>Update a non-repeating form with data <br>from a repeating form or a form in a repeating event.</b></h6>The most common use case for this EM will be when projects send out surveys to particpants at time intervals and they would like the participant's updated contact information replaced in a non-repeating demographics form. Fields that are left blank on the repeating form will not overwrite fields in the non-repeating form unless the 'overwrite' checkbox is checked.",
       "type": "descriptive"
     },
     {
       "key": "instances",
-      "name": "<b>Configure Summarize Instance</b>",
+      "name": "<b>Configure Update Instance</b>",
       "required": true,
       "type": "sub_settings",
       "repeatable": true,
       "sub_settings": [
         {
           "key": "repeat_event_id",
-          "name": "<b>Event id of the repeating form</b>",
+          "name": "<b>Source event</b><br>This is the event where the source form resides.",
           "required": true,
           "type": "event-list"
         },
         {
           "key": "repeat_form",
-          "name": "<b>Form name which holds the new data to be saved (repeating)</b>",
+          "name": "<b>Source form name</b><br>This is the form which holds the source fields.",
           "required": true,
           "type": "form-list"
         },
         {
           "key": "repeat_fields",
-          "name": "<b>List of fields to save in another form</b><br/>Comma separately list of fields",
+          "name": "<b>List of source fields</b><br/>Comma separately list of fields that will be used to update a non-repeating form. These fields must reside on the form selected above",
           "required": true,
           "type": "textarea"
         },
         {
           "key": "destination_event_id",
-          "name": "<b>Event id of the form to be updated</b>",
+          "name": "<b>Destination event</b><br>Event where the updates will take place. This cannot be a repeating event.</b>",
           "required": true,
           "type": "event-list"
         },
         {
           "key": "destination_form",
-          "name": "<b>Form name to be updated (non-repeating)</b>",
+          "name": "<b>Destination form name</b><br>The form which holds the destination fields. This form cannot be repeating.",
           "required": true,
           "type": "form-list"
         },
         {
           "key": "destination_fields",
-          "name": "<b>List of fields to update</b><br/>A comma-separated list of fields to update. Order must match repeat-fields",
-          "required": false,
+          "name": "<b>Destination fields</b><br/>A comma-separated list of fields to update. The order of these fields must match the order of the source fields and must be the same field type and have the same field format as the source fields.",
+          "required": true,
           "type": "textarea"
         },
         {
           "key": "overwrite",
-          "name": "<b>When checked, force an overwrite</b><br/>Data from the repeating forms will only overwrite data on the non-repeating form if there is data entered on the repeating form.  If there is no data in a field, the data in the non-repeating form will not get overwritten.  When this checkbox is checked, the data in the repeating form will always overwrite the data in the non-repeating form even if it is blank.",
+          "name": "<b>Force an overwrite</b><br/>Checking this box will cause the source fields to overwrite the destination fields even if there is no data in them.",
           "required": false,
           "type": "checkbox"
         }
@@ -116,7 +116,7 @@
       "required": false,
       "type": "checkbox",
       "source": "js/config.js",
-      "functionName": "SurveyUpdateConfig.init"
+      "functionName": "LatestFormVersionConfig.init"
     }
 
   ]

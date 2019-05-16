@@ -1,6 +1,6 @@
-# SurveyUpdates
+# Latest Form Version
 
-This external module allows you update a non-repeating form from data of a repeating form.
+This external module allows you update a non-repeating form from data of a repeating form or a form in a repeating event.
 The most common scenario is when you have a Demographics form in your project and you periodically ask participants to update their data.
 
 When participants update their data on a repeating form or a form in a repeating event, this EM will update 
@@ -10,12 +10,17 @@ form unless the Force Update checkbox is selected.
 
 ## Fields required to create a configuration
 
+Source:
 1. Repeating form eventID
 1. Repeating form name (currently, all fields must reside on the same form)
 1. Repeating form field list (comma-separated list)
+
+Destination:
 1. Non-repeating form eventID
 1. Non-repeating form name (currently, all fields must reside on the same form)
 1. Non-repeating form field list (comma-separated list)
+
+Type of update
 1. Force update checkbox - when selected, all repeating fields will override non-repeating fields even if the fields are blank.
 
 ## Assumptions
