@@ -141,7 +141,7 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
                 // If valid put together the summarize block and save it for this record
                 if ($valid) {
                     $this->emLog("Transferring data for config " . ($i+1) . " - form $instrument record $record/instance $repeat_instance");
-                    list($saved, $messages) = $su->transferData($record, $instrument, $repeat_instance);
+                    list($saved, $messages) = $su->transferData($record, $event_id, $instrument);
                     if ($saved) {
                         $this->emDebug("Transferred data for config " . ($i+1) . " for record $record and instance $repeat_instance");
                     } else {

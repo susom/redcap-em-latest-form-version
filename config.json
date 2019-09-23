@@ -1,16 +1,11 @@
 {
   "name": "Latest Form Version",
   "namespace": "Stanford\\LatestFormVersion",
-  "description": "This is a utility EM which takes a repeating form or a form in a repeating event and updates a non-repeating form. The most common use for this EM will be for participants to update their contact info in surveys and have that new info populate a Demographics instrument so the Demographics instrument is always up-to-date.",
+  "description": "This is a utility EM which takes fields in a form that may reside in more one event and updates a singular form. The most common use for this EM will be for participants to update their contact info in surveys (each survey is in its own event) and have that new info populate a Demographics instrument so the Demographics instrument is always up-to-date.",
   "authors": [
     {
       "name": "Andy Martin",
       "email": "andy123@stanford.edu",
-      "institution": "Stanford University"
-    },
-    {
-      "name": "Jae Lee",
-      "email": "jael@stanford.edu",
       "institution": "Stanford University"
     },
     {
@@ -45,13 +40,12 @@
       "required": false,
       "type": "checkbox"
     }
-
   ],
 
   "project-settings": [
     {
       "key": "description",
-      "name": "<h6 style='text-align:center;color:red'><b>Update a non-repeating form with data <br>from a repeating form or a form in a repeating event.</b></h6>The most common use case for this EM will be when projects send out surveys to particpants at time intervals and they would like the participant's updated contact information replaced in a non-repeating demographics form. Fields that are left blank on the repeating form will not overwrite fields in the non-repeating form unless the 'overwrite' checkbox is checked.",
+      "name": "<h6 style='text-align:center;color:red'><b>Update a singleton form with data <br>from a form designated in one or more events.</b></h6>The most common use case for this EM will be when projects send out surveys to particpants at time intervals and they would like the participant's updated contact information replaced in a non-repeating demographics form. Fields that are left blank on the repeating form will not overwrite fields in the non-repeating form unless the 'overwrite' checkbox is checked.",
       "type": "descriptive"
     },
     {
@@ -62,28 +56,16 @@
       "repeatable": true,
       "sub_settings": [
         {
-          "key": "repeat_event_id",
-          "name": "<b>Source event</b><br>This is the event where the source form resides.",
-          "required": true,
-          "type": "event-list"
-        },
-        {
-          "key": "repeat_form",
-          "name": "<b>Source form name</b><br>This is the form which holds the source fields.",
+          "key": "source_form",
+          "name": "<b>Source form name</b><br>This is the form which holds the source fields. This form can be included in one or more events but it is not repeating. Each time this form is saved (in any event), the update will occur.",
           "required": true,
           "type": "form-list"
         },
         {
-          "key": "repeat_fields",
-          "name": "<b>List of source fields</b><br/>Comma separately list of fields that will be used to update a non-repeating form. These fields must reside on the form selected above",
+          "key": "source_fields",
+          "name": "<b>List of source fields</b><br/>Comma separately list of fields that will be used to update the singular form. These fields must reside on the form selected above",
           "required": true,
           "type": "textarea"
-        },
-        {
-          "key": "destination_event_id",
-          "name": "<b>Destination event</b><br>Event where the updates will take place. This cannot be a repeating event.</b>",
-          "required": true,
-          "type": "event-list"
         },
         {
           "key": "destination_form",
