@@ -9,7 +9,7 @@ use \REDCap;
  *
  * This class validates each Survey Update configuration entered by users for their project.
  * Once the entered form/field lists are validated, it will save the specified field values
- * in the repeating form to the fields in the non-repeating form on save.
+ * in the source form to the fields in the destination form on save.
  *
  */
 class LatestFormVersionInstance
@@ -22,6 +22,7 @@ class LatestFormVersionInstance
     private $source_fields;
     private $destination_form;
     private $destination_fields;
+    private $destination_event_id;
     private $overwrite;
     private $pid;
 
@@ -57,9 +58,10 @@ class LatestFormVersionInstance
     }
 
     /**
-     * This function validates the surveyUpdate config.  It performs the following checks:
-     *  1) It validates the fields on the source form
-     *  2) It validates the fields on the destination form
+     * This function validates the config.  It performs the following checks:
+     *  1) It validates that all the source fields are on the source form and the source form is not repeating
+     *  2) It validates that all destination fields are on the destination form and that the destination form
+     *     if not repeating and only in one event.
      *  3) It verifies that there are the same number of fields on the source and destination forms
      *  4) It verifies that the fields are the same type on both forms
      *
@@ -71,12 +73,21 @@ class LatestFormVersionInstance
 
         // First verify the source form/field
         list($valid, $message) = $this->checkFormsFields($this->source_form, $this->source_fields, false);
+        //$this->module->emDebug("Return from source form: " . $valid . ", and message: " . $message);
         if (!$valid) {
             return array($valid, $message);
         }
 
         // Then, perform the same checks on the destination fields/event
         list($valid, $message) = $this->checkFormsFields($this->destination_form, $this->destination_fields, true);
+        //$this->module->emDebug("Return from destination form: " . $valid . ", and message: " . $message);
+
+        // Find the destination form eventID
+        foreach($this->Proj->eventsForms as $eventID => $formList) {
+            if (in_array($this->destination_form, $formList)) {
+                $this->destination_event_id = $eventID;
+            }
+        }
 
         if ($valid) {
             // Make sure there are the same number of source and destination fields
@@ -106,13 +117,13 @@ class LatestFormVersionInstance
             }
         }
 
-        $this->module->emDebug("Valid: $valid, and message: " . $message);
         return array($valid, $message);
     }
 
     /**
      * This function ensures that the specified fields are on the specified form. If the singleton input is true,
-     * the form is checked to ensure it is only in one event.
+     * the form is checked to ensure it is only in one event.  It also checks to make sure the form is not repeating
+     * or in a repeating event.
      *
      * @param $form - Selected form in the configuration
      * @param $fields - Selected fields in the configuration
@@ -130,21 +141,50 @@ class LatestFormVersionInstance
         $arrayDiff = array_diff($fields, $fieldsOnForm);
         if (!empty($arrayDiff)) {
             $message = "<li>These fields are not on form $form: " . implode(',', $arrayDiff) . "</li>";
+            $this->module->emDebug($message);
             return array(false, $message);
         }
+        $this->module->emDebug("These fields are on the same form: " . json_encode($fields));
 
-        // If this is suppose to be a singleton form, make sure it is only in one event
-        if ($singleton) {
-            $included_in_num_events = 0;
-            foreach($this->Proj->eventsForms as $event_id => $form_list) {
-                if (in_array($form, $form_list)) {
-                    $included_in_num_events += 1;
+        // Get the list of eventIDs that this form belongs to
+        $eventIDList = array();
+        foreach($this->Proj->eventsForms as $event_id => $form_list) {
+            if (in_array($form, $form_list)) {
+                $eventIDList[] = $event_id;
+            }
+        }
+        // $this->module->emDebug("List of event IDs that this form $form belongs to: " . json_encode($eventIDList));
+
+
+        // Make sure this form is not a repeating form or on a repeating event
+        if ($this->Proj->hasRepeatingForms()) {
+
+            // Next check to see if the form is repeating or in a repeating event
+            $repeatingEvents = array_keys($this->Proj->RepeatingFormsEvents);
+            foreach($repeatingEvents as $eventID) {
+
+                if ($this->Proj->RepeatingFormsEvents[$eventID] === "WHOLE") {
+                    // This is a repeating event so send an error
+                    $message = "<li>The form $form cannot be in a repeating event.</li>";
+                    $this->module->emDebug("EventID $eventID: " . $message);
+                    return array(false, $message);
+                } else if (!empty($this->Proj->RepeatingFormsEvents[$eventID])) {
+                    $repeatingForms = $this->Proj->RepeatingFormsEvents[$eventID];
+                    if (in_array($form, $repeatingForms)) {
+                        // This is a repeating form so send an error
+                        $message = "<li>The form $form cannot be a repeating form.</li>";
+                        $this->module->emDebug("EventID $eventID: " . $message);
+                        return array(false, $message);
+                    }
                 }
             }
-            if ($included_in_num_events != 1) {
-                $message = "<li>The form $form must be in one and only one event.</li>";
-                return array(false, $message);
-            }
+        }
+
+        // If this is suppose to be a singleton form, make sure there is one and only one
+        if ($singleton && (count($eventIDList) != 1)) {
+            $message = "<li>The form $form must be in one and only one event but belongs to " . count($eventIDList) . ".</li>";
+            $this->module->emDebug($message);
+            return array(false, $message);
         }
 
         return array($valid, $message);
@@ -161,43 +201,33 @@ class LatestFormVersionInstance
      */
     public function transferData($record, $event_id, $instrument)
     {
-        $this->module->emDebug("In transferData: record $record, instrument $instrument");
+        $this->module->emDebug("In transferData: record $record, instrument $instrument, event $event_id");
         $saved = true;
         $errors = '';
 
         // Retrieve the data from the source form
         $data = REDCap::getData('array', $record, $this->source_fields, $event_id);
-        $this->module->emDebug("Retrieve data from getData: " . json_encode($data));
-        $this_record = $data[$record];
-        $repeat_key = array_keys($this_record);
-        //if ($repeat_key == "repeat_instances") {
-            if ($this->Proj->isRepeatingEvent($this->repeat_eventid)) {
-                $repeat_data = $data[$record]["repeat_instances"][$this->repeat_eventid][""][$repeat_instance];
-            } else {
-                $repeat_data = $data[$record]["repeat_instances"][$this->repeat_eventid][$instrument][$repeat_instance];
-            }
-        //} else {
-        //    $repeat_data = $data[$record][$this->repeat_eventid];
-        //}
+        //$this->module->emDebug("Retrieved data from getData: " . json_encode($data));
+        $source_field_values = $data[$record][$event_id];
 
         $new_data = array();
-        for ($ncnt=0; $ncnt < count($this->repeat_fields); $ncnt++) {
+        for ($ncnt=0; $ncnt < count($this->source_fields); $ncnt++) {
 
             // Only save if the field has a value or if the force overwrite checkbox is selected
-            $value = $repeat_data[$this->repeat_fields[$ncnt]];
+            $value = $source_field_values[$this->source_fields[$ncnt]];
             if (($value !== '') || $this->overwrite) {
                 $new_data[$this->destination_fields[$ncnt]] = $value;
             }
         }
 
-        $saveData[$record][$this->destination_eventid] = $new_data;
+        $saveData[$record][$this->destination_event_id] = $new_data;
         $return = REDCap::saveData('array', $saveData, 'overwrite');
         if (!empty($return["errors"])) {
             $saved = false;
-            $errors = "Error saving summarize block: " . json_encode($return["errors"]);
+            $errors = "Error saving data in form $this->destination_form from form $this->source_form for record $record and eventID $event_id: " . json_encode($return["errors"]);
             $this->module->emError($errors);
         } else {
-            $this->module->emDebug("Saving data for record $record, instrument $instrument, repeat instance $repeat_instance", $saveData);
+            $this->module->emDebug("Saving data for record $record, instrument $instrument from event $event_id", $saveData);
         }
 
         return array($saved, $errors);

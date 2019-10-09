@@ -69,7 +69,7 @@
         },
         {
           "key": "destination_form",
-          "name": "<b>Destination form name</b><br>The form which holds the destination fields. This form cannot be repeating.",
+          "name": "<b>Destination form name</b><br>The form which holds the destination fields. This form cannot be repeating and cannot be included in more than one event (must be a singleton form).",
           "required": true,
           "type": "form-list"
         },

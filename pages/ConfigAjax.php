@@ -6,10 +6,8 @@ namespace Stanford\LatestFormVersion;
 // HANDLE BUTTON ACTION
 if (empty($_POST['action'])) exit();
 
-
 $action = $_POST['action'];
-
-$module->emDebug($_POST);
+$module->emDebug("Action: " . $action);
 
 $message = $delay = $callback = null;
 
@@ -25,10 +23,9 @@ switch ($action) {
 
 
         // For this module, we want the subsettings of 'instance' - the repeating block of config
-        // $module->emDebug( $module->getSettingConfig('instance') );
+        $module->emDebug("Raw instance data: " . json_encode($data));
         $instances = $module->parseSubsettingsFromSettings('instances', $data);
-        // $module->emDebug($instances);
-        $module->emDebug("formatted instances: ", $instances);
+        // $module->emDebug("formatted instances: " .  json_encode($instances));
 
         // foreach ($instances as $k => $v) {
         //     foreach ($v as $key => $val) {
@@ -38,7 +35,7 @@ switch ($action) {
         // $module->emDebug("formatted settings: ", $data);
 
         list($result,$message) = $module->validateConfigs( $instances );
-        $module->emDebug($action, $result, $message);
+        $module->emDebug("Return from validateConfigs: " . $action . ", result: " . $result . ", message: " . json_encode($message));
         break;
 }
 
