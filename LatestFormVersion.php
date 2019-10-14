@@ -177,15 +177,15 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
 
                     // If valid and this is a source form,
                     if ($valid) {
-                        $this->emLog("Transferring data for config " . ($i + 1) . " - form $instrument record $record/instance $repeat_instance");
+                        $this->emLog("Transferring data for config " . ($i + 1) . " - form $instrument record $record/event $event_id");
                         list($saved, $messages) = $su->transferData($record, $event_id, $instrument);
                         if ($saved) {
-                            $this->emDebug("Transferred data for config " . ($i + 1) . " for record $record and instance $repeat_instance");
+                            $this->emDebug("Transferred data for config " . ($i + 1) . " for record $record and event $event_id");
                         } else {
                             $this->emLog($messages);
                         }
                     } else {
-                        $this->emError("Skipping data transfer for config " . ($i + 1) . " for record $record and instance $repeat_instance because config is invalid" . json_encode($instance));
+                        $this->emError("Skipping data transfer for config " . ($i + 1) . " for record $record and event $event_id because config is invalid" . json_encode($instance));
                     }
                 } catch (Exception $ex) {
                     $this->emError("Cannot create instance of class LatestFormVersionInstance");

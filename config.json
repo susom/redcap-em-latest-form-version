@@ -63,7 +63,7 @@
         },
         {
           "key": "source_fields",
-          "name": "<b>List of source fields</b><br/>Comma separately list of fields that will be used to update the singular form. These fields must reside on the form selected above",
+          "name": "<b>List of source fields</b><br/>Comma separately list of fields that will be used to update the singular form. These fields must reside on the form selected above. Checkbox fields are not supported and a configuration error will be displayed if included in this list.",
           "required": true,
           "type": "textarea"
         },

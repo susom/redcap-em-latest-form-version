@@ -1,12 +1,15 @@
 # Latest Form Version
 
 This external module allows you update a singleton form from data on a form that is in one or more events.
-The most common scenario is when you have a Demographics form in your project and you periodically ask participants to update their data.
+The most common scenario is when you have a Demographics form in your project that you always want up-to-date 
+and you periodically ask participants to update their data on a separate form.
 
 When participants update their data (most likely on a survey), this EM will update 
-the data on the singleton (Demographics) form. Only non-empty fields will be copied to the singleton
+the data on the singleton (Demographics) form from the survey data. Only non-empty fields will be copied to the singleton
 form unless the Force Update checkbox is selected.
 
+This EM will display an error if checkboxes are selected for update. Since it cannot be determined if a checkbox was
+unchecked or just left blank, this module excludes the use of them.
 
 ## Fields required to create a configuration
 
@@ -31,3 +34,4 @@ Type of update
 1. The source form must be enabled in only one event and cannot be repeating.
 1. There must be the same number of source form fields as there are destination form fields
 1. The destination field and source fields must be declared as the same 'type' (i.e. both declared date fields with date format of Y-M-D).
+1. Source fields cannot be checkboxes.

@@ -144,7 +144,17 @@ class LatestFormVersionInstance
             $this->module->emDebug($message);
             return array(false, $message);
         }
-        $this->module->emDebug("These fields are on the same form: " . json_encode($fields));
+        //$this->module->emDebug("These fields are on the same form: " . json_encode($fields));
+
+        // Make sure none of the fields in the list are checkboxes
+        foreach($fields as $eachField => $fieldInfo) {
+            if ($this->Proj->metadata[$fieldInfo][element_type] === "checkbox") {
+                $message = "<li>Checkboxes are not supported [$fieldInfo]. Please remove the checkbox(es) from the fieldlist.</li>";
+                $this->module->emDebug($message);
+                return array(false, $message);
+            }
+        }
+        //$this->module->emDebug("No checkboxes found");
 
         // Get the list of eventIDs that this form belongs to
         $eventIDList = array();
@@ -153,8 +163,7 @@ class LatestFormVersionInstance
                 $eventIDList[] = $event_id;
             }
         }
-        // $this->module->emDebug("List of event IDs that this form $form belongs to: " . json_encode($eventIDList));
-
+        $this->module->emDebug("List of event IDs that this form $form belongs to: " . json_encode($eventIDList));
 
         // Make sure this form is not a repeating form or on a repeating event
         if ($this->Proj->hasRepeatingForms()) {
@@ -201,13 +210,12 @@ class LatestFormVersionInstance
      */
     public function transferData($record, $event_id, $instrument)
     {
-        $this->module->emDebug("In transferData: record $record, instrument $instrument, event $event_id");
+        //$this->module->emDebug("In transferData: record $record, instrument $instrument, event $event_id");
         $saved = true;
         $errors = '';
 
         // Retrieve the data from the source form
         $data = REDCap::getData('array', $record, $this->source_fields, $event_id);
-        //$this->module->emDebug("Retrieved data from getData: " . json_encode($data));
         $source_field_values = $data[$record][$event_id];
 
         $new_data = array();
