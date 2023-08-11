@@ -87,22 +87,19 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
         $result = true;
         $messages = [];
 
-        $this->emDebug("In validateConfigs");
-
         foreach ($instances as $i => $instance) {
-            $this->emDebug("In instance " . $i . ", parameters: " . json_encode($instance));
+            // $this->emDebug("In instance " . $i . ", parameters: " . json_encode($instance));
             $su = new LatestFormVersionInstance($this, $instance);
-            $this->emDebug("Retrieved the instance");
 
             // Get result
             list($valid, $message) = $su->validateConfig();
-            $this->emDebug("Returned from validConfig with status: " . $valid . ", and message: " . $message);
+            // $this->emDebug("Returned from validConfig with status: " . $valid . ", and message: " . $message);
 
             // Get messages
             if (!$valid) {
                 $result = false;
                 $messages[] = "<b>Configuration Issues with #" . ($i+1) . "</b>" . $message;
-                $this->emDebug("Invalid configuration message: ", $messages);
+                $this->emError("Invalid configuration message: ", $messages);
             } else {
                 $this->emDebug("Configuration ($i+1) is valid.");
             }
@@ -125,9 +122,7 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
     function redcap_module_save_configuration($project_id) {
         $instances = $this->getSubSettings('instance');
         list($results, $errors) = $this->validateConfigs($instances);
-
-        $this->emDebug("On SAVE", $results, $errors);
-   }
+    }
 
     /**
      * This function will check for a delete form action.  If the user is deleting the form, don't update the destination
@@ -137,8 +132,6 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
         if (@$_POST['submit-action'] === 'submit-btn-deleteform') {
             $this->deleteAction = 'deleteForm';
         }
-       $this->emLog(PAGE, $_POST, $_GET);
-
    }
 
     /**
@@ -168,28 +161,28 @@ class LatestFormVersion extends \ExternalModules\AbstractExternalModule
 
             // Only process this config if the form is the source form and the form is not being deleted
             if (($instance["source_form"] == $instrument) && ($this->deleteAction !== 'deleteForm')) {
-                $this->emDebug("Continuing processing since this is a source form: " . $instrument);
+                // $this->emDebug("Continuing processing since this is a source form: " . $instrument);
 
                 // See if this config is valid
                 try {
-                    $su = new LatestFormVersionInstance($this, $instance);
+                    $su = new LatestFormVersionInstance($this, $instance, $repeat_instance);
                     list($valid, $messages) = $su->validateConfig();
 
                     // If valid and this is a source form,
                     if ($valid) {
-                        $this->emLog("Transferring data for config " . ($i + 1) . " - form $instrument record $record/event $event_id");
+                        // $this->emLog("Transferring data for config " . ($i + 1) . " - form $instrument record $record/event $event_id");
                         list($saved, $messages) = $su->transferData($record, $event_id, $instrument);
                         if ($saved) {
-                            $this->emDebug("Transferred data for config " . ($i + 1) . " for record $record and event $event_id");
+                            // $this->emDebug("Transferred data for config " . ($i + 1) . " for record $record and event $event_id");
                         } else {
-                            $this->emLog($messages);
+                            // $this->emLog($messages);
                         }
                     } else {
                         $this->emError("Skipping data transfer for config " . ($i + 1) . " for record $record and event $event_id because config is invalid" . json_encode($instance));
                     }
                 } catch (Exception $ex) {
                     $this->emError("Cannot create instance of class LatestFormVersionInstance");
-                    exit;
+                    return;
                 }
             }
         }

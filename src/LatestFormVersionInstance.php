@@ -25,8 +25,9 @@ class LatestFormVersionInstance
     private $destination_event_id;
     private $overwrite;
     private $pid;
+    private $repeat_instance;
 
-    public function __construct($module, $instance)
+    public function __construct($module, $instance, $repeat_instance)
     {
         $this->module = $module;
 
@@ -35,6 +36,7 @@ class LatestFormVersionInstance
         $this->destination_form     = $instance['destination_form'];
         $this->destination_fields   = $this->parseConfigList( $instance['destination_fields'] );
         $this->overwrite            = $instance['overwrite'];
+        $this->repeat_instance      = $repeat_instance;
 
         global $Proj;
         $this->Proj = $Proj;
@@ -73,14 +75,12 @@ class LatestFormVersionInstance
 
         // First verify the source form/field
         list($valid, $message) = $this->checkFormsFields($this->source_form, $this->source_fields, false);
-        //$this->module->emDebug("Return from source form: " . $valid . ", and message: " . $message);
         if (!$valid) {
             return array($valid, $message);
         }
 
         // Then, perform the same checks on the destination fields/event
         list($valid, $message) = $this->checkFormsFields($this->destination_form, $this->destination_fields, true);
-        //$this->module->emDebug("Return from destination form: " . $valid . ", and message: " . $message);
 
         // Find the destination form eventID
         foreach($this->Proj->eventsForms as $eventID => $formList) {
@@ -144,17 +144,15 @@ class LatestFormVersionInstance
             $this->module->emDebug($message);
             return array(false, $message);
         }
-        //$this->module->emDebug("These fields are on the same form: " . json_encode($fields));
 
         // Make sure none of the fields in the list are checkboxes
         foreach($fields as $eachField => $fieldInfo) {
-            if ($this->Proj->metadata[$fieldInfo][element_type] === "checkbox") {
+            if ($this->Proj->metadata[$fieldInfo]['element_type'] === "checkbox") {
                 $message = "<li>Checkboxes are not supported [$fieldInfo]. Please remove the checkbox(es) from the fieldlist.</li>";
                 $this->module->emDebug($message);
                 return array(false, $message);
             }
         }
-        //$this->module->emDebug("No checkboxes found");
 
         // Get the list of eventIDs that this form belongs to
         $eventIDList = array();
@@ -163,7 +161,6 @@ class LatestFormVersionInstance
                 $eventIDList[] = $event_id;
             }
         }
-        $this->module->emDebug("List of event IDs that this form $form belongs to: " . json_encode($eventIDList));
 
         // Make sure this form is not a repeating form or on a repeating event
         if ($this->Proj->hasRepeatingForms()) {
@@ -182,7 +179,6 @@ class LatestFormVersionInstance
                     if (in_array($form, $repeatingForms)) {
                         // This is a repeating form so send an error
                         $message = "<li>The form $form cannot be a repeating form.</li>";
-                        $this->module->emDebug("EventID $eventID: " . $message);
                         return array(false, $message);
                     }
                 }
@@ -204,38 +200,40 @@ class LatestFormVersionInstance
      * is data in the repeating form fields or if the force overwrite checkbox is selected.
      *
      * @param $record
+     * @param $event_id
      * @param $instrument
-     * @param $repeat_instance
      * @return array
      */
     public function transferData($record, $event_id, $instrument)
     {
-        //$this->module->emDebug("In transferData: record $record, instrument $instrument, event $event_id");
+        $this->module->emDebug("In transferData: record $record, instrument $instrument, event $event_id, repeat_instance: " . $this->repeat_instance);
         $saved = true;
         $errors = '';
 
         // Retrieve the data from the source form
-        $data = REDCap::getData('array', $record, $this->source_fields, $event_id);
-        $source_field_values = $data[$record][$event_id];
+        $data = REDCap::getData('json', $record, $this->source_fields, $event_id);
+        $source_field_values = json_decode($data, true);
+        $instance_field_values = $source_field_values[$this->repeat_instance-1];
 
         $new_data = array();
         for ($ncnt=0; $ncnt < count($this->source_fields); $ncnt++) {
 
             // Only save if the field has a value or if the force overwrite checkbox is selected
-            $value = $source_field_values[$this->source_fields[$ncnt]];
+            $value = $instance_field_values[$this->source_fields[$ncnt]];
             if (($value !== '') || $this->overwrite) {
                 $new_data[$this->destination_fields[$ncnt]] = $value;
             }
         }
 
         $saveData[$record][$this->destination_event_id] = $new_data;
+        // $this->module->emDebug("This is the data to save: " .json_encode($saveData));
         $return = REDCap::saveData('array', $saveData, 'overwrite');
         if (!empty($return["errors"])) {
             $saved = false;
             $errors = "Error saving data in form $this->destination_form from form $this->source_form for record $record and eventID $event_id: " . json_encode($return["errors"]);
             $this->module->emError($errors);
         } else {
-            $this->module->emDebug("Saving data for record $record, instrument $instrument from event $event_id", $saveData);
+            $this->module->emDebug("Saving data for record $record, instrument $instrument from event $event_id");
         }
 
         return array($saved, $errors);
